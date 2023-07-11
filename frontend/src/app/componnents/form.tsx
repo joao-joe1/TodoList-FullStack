@@ -13,6 +13,8 @@ interface Task {
 export function Form() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const inputTask = useRef<HTMLInputElement>(null);
+  const deleteButton = useRef<HTMLInputElement>(null);
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const options = {
     day: "numeric",
     month: "long",
@@ -26,11 +28,13 @@ export function Form() {
     const task = {
       title: inputTask.current?.value,
     };
+    setIsButtonDisabled(true);
     await fetch("http://localhost:3333/tasks", {
       method: "post",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(task),
     });
+    setIsButtonDisabled(true);
     window.location.reload();
   };
 
@@ -48,6 +52,19 @@ export function Form() {
     fetchData();
   }, []);
 
+  const deleteTask = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    const taskId = event.currentTarget.dataset.id;
+    if (taskId)
+      try {
+        await fetch(`http://localhost:3333/tasks/${taskId}`, {
+          method: "DELETE",
+        });
+        window.location.reload();
+      } catch (error) {
+        console.log(error);
+      }
+  };
+
   return (
     <main>
       <form className="add-form">
@@ -55,10 +72,11 @@ export function Form() {
           type="text"
           placeholder="Adicionar tarefa"
           className="input-task"
+          disabled={isButtonDisabled}
           ref={inputTask}
         ></input>
         <button type="submit" onClick={postTitle}>
-          +
+          {isButtonDisabled ? "..." : "+"}
         </button>
       </form>
 
@@ -95,7 +113,11 @@ export function Form() {
                   </span>
                 </button>
 
-                <button className="btn-action">
+                <button
+                  className="btn-action"
+                  data-id={task.id}
+                  onClick={deleteTask}
+                >
                   <span>
                     <Delete />
                   </span>
