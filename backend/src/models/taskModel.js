@@ -2,7 +2,7 @@ const connection = require('./connection')
 
 const getAll = async () => {
     // Obtém todas as tarefas do banco de dados
-    const [tasks] = await connection.execute('SELECT * FROM tasks')
+    const [tasks] = await connection.execute('SELECT * FROM tasks ORDER BY `id` desc')
     return tasks;
 }
 

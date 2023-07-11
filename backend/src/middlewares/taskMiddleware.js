@@ -7,10 +7,20 @@ const validateBody = (request, response, next) => {
         errors.push('O campo título é obrigatório!')
     }
 
+    if (errors.length > 0) {
+        return response.status(400).json({ errors })
+    }
+
+    next()
+}
+
+const validateBodyPut = (request, response, next) => {
+    const { body } = request
+    const errors = []
+
     if (!body.status) {
         errors.push('O campo status é obrigatório!')
     }
-
     if (errors.length > 0) {
         return response.status(400).json({ errors })
     }
@@ -20,5 +30,6 @@ const validateBody = (request, response, next) => {
 
 
 module.exports = {
-    validateBody
+    validateBody,
+    validateBodyPut
 }
