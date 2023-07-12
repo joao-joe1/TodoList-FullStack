@@ -13,7 +13,7 @@ interface Task {
 export function Form() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const inputTask = useRef<HTMLInputElement>(null);
-  const deleteButton = useRef<HTMLInputElement>(null);
+  const inputStatus = useRef<HTMLSelectElement>(null);
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const options = {
     day: "numeric",
@@ -23,6 +23,7 @@ export function Form() {
     minute: "numeric",
   };
 
+  // Criar uma tarefa
   const postTitle = async (event: React.FormEvent) => {
     event.preventDefault();
     const task = {
@@ -37,7 +38,7 @@ export function Form() {
     setIsButtonDisabled(true);
     window.location.reload();
   };
-
+  // Pegar tarefas do DB
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -51,7 +52,7 @@ export function Form() {
 
     fetchData();
   }, []);
-
+  // Deletar uma tarefa
   const deleteTask = async (event: React.MouseEvent<HTMLButtonElement>) => {
     const taskId = event.currentTarget.dataset.id;
     if (taskId)
@@ -61,8 +62,34 @@ export function Form() {
         });
         window.location.reload();
       } catch (error) {
-        console.log(error);
+        console.error(error);
       }
+  };
+  // Atualizar uma tarefa
+  const putTask = async (
+    taskId: number,
+    taskTitle: string,
+    taskCreated: string,
+    taskStatus: string
+  ) => {
+    const newStatus = inputStatus.current?.value;
+
+    const updatedTask = {
+      title: taskTitle,
+      status: newStatus,
+    };
+
+    if (taskId) {
+      try {
+        await fetch(`http://localhost:3333/tasks/${taskId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedTask),
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    }
   };
 
   return (
@@ -100,14 +127,23 @@ export function Form() {
                 {new Date(task.created_at).toLocaleString("pt-br", options)}
               </td>
               <td>
-                <select>
+                <select
+                  onChange={() =>
+                    putTask(task.id, task.title, task.created_at, task.status)
+                  }
+                  ref={inputStatus}
+                >
                   <option value="pendente">pendente</option>
                   <option value="em andamento">em andamento</option>
                   <option value="concluída">concluída</option>
                 </select>
               </td>
               <td>
-                <button className="btn-action">
+                <button
+                  data-id={task.id}
+                  className="btn-action"
+                  // onClick={() => putTask(task.id, task.title)}
+                >
                   <span>
                     <Edit />
                   </span>
