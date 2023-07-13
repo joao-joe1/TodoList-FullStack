@@ -8,12 +8,14 @@ interface Task {
   title: string;
   created_at: string;
   status: string;
+  isEditing: boolean;
 }
 
 export function Form() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const inputTask = useRef<HTMLInputElement>(null);
-  const inputStatus = useRef<HTMLSelectElement>(null);
+  const buttonEdit = useRef<HTMLButtonElement>(null);
+  const inputStatus = useRef<(HTMLSelectElement | null)[]>([]);
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const options = {
     day: "numeric",
@@ -66,13 +68,13 @@ export function Form() {
       }
   };
   // Atualizar uma tarefa
-  const putTask = async (
+  const putTaskSelect = async (
     taskId: number,
     taskTitle: string,
     taskCreated: string,
     taskStatus: string
   ) => {
-    const newStatus = inputStatus.current?.value;
+    const newStatus = inputStatus.current[taskId]?.value;
 
     const updatedTask = {
       title: taskTitle,
@@ -86,9 +88,11 @@ export function Form() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(updatedTask),
         });
+        // window.location.reload();
       } catch (error) {
         console.error(error);
       }
+      window.location.reload();
     }
   };
 
@@ -122,16 +126,40 @@ export function Form() {
           {tasks?.map((task: Task) => (
             <tr key={task.id}>
               <td>{task.id}</td>
-              <td>{task.title}</td>
+              <td>
+                {task.isEditing ? (
+                  <input
+                    type="text"
+                    value={task.title}
+                    onChange={(event) => {
+                      const updatedTasks = tasks.map((t) => {
+                        if (t.id === task.id) {
+                          return { ...t, title: event.target.value };
+                        }
+                        return t;
+                      });
+                      setTasks(updatedTasks);
+                    }}
+                  />
+                ) : (
+                  task.title
+                )}
+              </td>
               <td>
                 {new Date(task.created_at).toLocaleString("pt-br", options)}
               </td>
               <td>
                 <select
                   onChange={() =>
-                    putTask(task.id, task.title, task.created_at, task.status)
+                    putTaskSelect(
+                      task.id,
+                      task.title,
+                      task.created_at,
+                      task.status
+                    )
                   }
-                  ref={inputStatus}
+                  ref={(el) => (inputStatus.current[task.id] = el)}
+                  value={task.status}
                 >
                   <option value="pendente">pendente</option>
                   <option value="em andamento">em andamento</option>
@@ -141,8 +169,17 @@ export function Form() {
               <td>
                 <button
                   data-id={task.id}
+                  ref={buttonEdit}
                   className="btn-action"
-                  // onClick={() => putTask(task.id, task.title)}
+                  onClick={() => {
+                    const updatedTask = tasks.map((task) => {
+                      if (task.id === task.id) {
+                        return { ...task, isEditing: true };
+                      }
+                      return task;
+                    });
+                    setTasks(updatedTask);
+                  }}
                 >
                   <span>
                     <Edit />
