@@ -16,7 +16,7 @@
     "eslint": "8.44.0",
     "eslint-config-next": "13.4.8",
     "lucide": "^0.258.0",
-    "lucide-react": "^0.258.0",
+    "lucide-react": "^0.263.1",
     "next": "13.4.8",
     "postcss": "8.4.25",
     "react": "18.2.0",
